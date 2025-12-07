@@ -1,4 +1,4 @@
-# GitGotchi (The Contribution Pet) 🐉
+# GitGotchi Profile Pet 🐉
 
 **GitGotchi** is a GitHub Action that maintains a virtual pet in your profile README. This pet's life depends on your coding activity! It is a gamification layer for open-source contributions, designed to motivate developers to commit code daily.
 
