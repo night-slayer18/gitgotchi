@@ -32,7 +32,7 @@ jobs:
       - name: Run GitGotchi
         uses: ./
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.USER_TOKEN }}
           pet_name: 'Demo Dragon'
 
       - name: Commit and Push

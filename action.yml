@@ -2,13 +2,25 @@ name: 'GitGotchi'
 description: 'A virtual pet in your profile README that grows with your contributions.'
 author: 'GitGotchi Team'
 inputs:
-  GITHUB_TOKEN:
-    description: 'GitHub Token'
+  token:
+    description: 'GitHub Token. Use a PAT with "repo" and "user" scopes (e.g. USER_TOKEN) for private stats, or GITHUB_TOKEN for public only.'
     required: true
   pet_name:
     description: 'Name of your pet'
     required: false
     default: 'GitGotchi'
+  template_file:
+    description: 'Path to template file (e.g. TEMPLATE.md)'
+    required: false
+    default: 'TEMPLATE.md'
+  out_file:
+    description: 'Path to output file (e.g. README.md)'
+    required: false
+    default: 'README.md'
+  assets_dir:
+    description: 'Directory to store state and svg (e.g. .github/gitgotchi)'
+    required: false
+    default: '.github/gitgotchi'
     default: 'GitGotchi'
 
 runs:

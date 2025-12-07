@@ -8,13 +8,11 @@ import { SvgGenerator } from './renderer/SvgGenerator';
 
 async function run(): Promise<void> {
   try {
-    const token = core.getInput('GITHUB_TOKEN');
+    const token = core.getInput('token');
     const petName = core.getInput('pet_name') || 'GitGotchi';
-    
-    // Hardcoded Configuration
-    const templateFile = 'TEMPLATE.md';
-    const outFile = 'README.md';
-    const assetsDir = '.github/gitgotchi';
+    const templateFile = core.getInput('template_file') || 'TEMPLATE.md';
+    const outFile = core.getInput('out_file') || 'README.md';
+    const assetsDir = core.getInput('assets_dir') || '.github/gitgotchi';
     const username = github.context.actor;
 
     const stateService = new StateService();
