@@ -31,7 +31,7 @@ exports.SPRITES = {
         <stop offset="100%" style="stop-color:#651fff" /> <!-- Deep Purple -->
       </linearGradient>
     </defs>
-    <g transform="translate(100, 100) scale(2.5)">
+    <g transform="translate(100, 100) scale(2.2)">
       <!-- Tail -->
       <path d="M-20,20 Q-40,30 -30,10" fill="none" stroke="#651fff" stroke-width="4" stroke-linecap="round"/>
       
@@ -64,7 +64,7 @@ exports.SPRITES = {
         <stop offset="100%" style="stop-color:#00bfa5" /> <!-- Darker Teal -->
       </linearGradient>
     </defs>
-    <g transform="translate(100, 100) scale(2)">
+    <g transform="translate(100, 100) scale(1.8)">
       <!-- Body -->
       <path d="M-15,30 Q0,50 15,30 L10,-10 L-10,-10 Z" fill="url(#teenBody)" stroke="#004d40" stroke-width="1.5"/>
       
@@ -106,7 +106,7 @@ exports.SPRITES = {
         </feMerge>
       </filter>
     </defs>
-    <g transform="translate(100, 100) scale(1.8)" filter="url(#shadow)">
+    <g transform="translate(100, 100) scale(1.5)" filter="url(#shadow)">
       <!-- Tail -->
       <path d="M-20,40 Q-60,60 -40,10" fill="none" stroke="#b71c1c" stroke-width="6" stroke-linecap="round"/>
       
@@ -142,7 +142,7 @@ exports.SPRITES = {
         <stop offset="100%" style="stop-color:#cfd8dc" />
       </radialGradient>
     </defs>
-    <g transform="translate(100, 100) scale(2.5)" opacity="0.7">
+    <g transform="translate(100, 100) scale(2.0)" opacity="0.7">
       <!-- Body -->
       <path d="M-25,30 Q-25,-40 0,-40 Q25,-40 25,30 Q15,10 0,30 Q-15,10 -25,30" fill="url(#ghostGrad)" stroke="#90a4ae" stroke-width="1.5"/>
       

@@ -30059,6 +30059,7 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(7484));
+const fs = __importStar(__nccwpck_require__(9896));
 const github = __importStar(__nccwpck_require__(3228));
 const StateService_1 = __nccwpck_require__(6302);
 const GitHubService_1 = __nccwpck_require__(6626);
@@ -30066,34 +30067,47 @@ const GameEngine_1 = __nccwpck_require__(2840);
 const SvgGenerator_1 = __nccwpck_require__(2180);
 async function run() {
     try {
-        const token = core.getInput('GITHUB_TOKEN');
-        const petNameInput = core.getInput('pet_name');
+        const token = core.getInput('token');
+        const petName = core.getInput('pet_name') || 'GitGotchi';
+        const templateFile = core.getInput('template_file') || 'TEMPLATE.md';
+        const outFile = core.getInput('out_file') || 'README.md';
+        const assetsDir = core.getInput('assets_dir') || '.github/gitgotchi';
         const username = github.context.actor;
-        // 1. Init Services
         const stateService = new StateService_1.StateService();
+        const currentState = await stateService.loadState(petName, assetsDir);
         const githubService = new GitHubService_1.GitHubService(token);
-        const gameEngine = new GameEngine_1.GameEngine();
-        const svgGenerator = new SvgGenerator_1.SvgGenerator();
-        core.info(`Starting GitGotchi for user: ${username}`);
-        // 2. Load State
-        const currentState = await stateService.loadState(petNameInput || 'GitGotchi');
-        core.info(`Loaded state: Level ${currentState.level} ${currentState.petName}`);
-        // 3. Fetch Contributions
-        // We fetch since 'lastFed' time to capture all activity since last run
+        // Fetch contributions since last fed time
         const lastFedDate = new Date(currentState.lastFed);
         const contributions = await githubService.getContributionStats(username, lastFedDate);
-        // 4. Update Game State
+        const gameEngine = new GameEngine_1.GameEngine();
         const nextState = gameEngine.calculateNextState(currentState, contributions);
+        nextState.petName = petName;
         core.info(`New State: HP=${nextState.hp}, XP=${nextState.xp}, Streak=${nextState.streak}`);
-        // 5. Render SVG
+        const svgGenerator = new SvgGenerator_1.SvgGenerator();
         const svgContent = svgGenerator.render(nextState);
-        // 6. Save State and SVG
-        await stateService.saveState(nextState, svgContent);
-        core.info('Saved state and updated gitgotchi.svg to orphan branch.');
+        await stateService.saveState(nextState, svgContent, assetsDir);
+        if (fs.existsSync(templateFile)) {
+            console.log(`Processing template ${templateFile}...`);
+            let templateContent = fs.readFileSync(templateFile, 'utf8');
+            // Construct relative path for the image link. 
+            // Assuming outFile is in root and assetsDir is relative to root.
+            const imagePath = `${assetsDir}/gitgotchi.svg`;
+            const imageTag = `![GitGotchi](${imagePath})`;
+            // Replace placeholder
+            templateContent = templateContent.replace('{{ gitgotchi }}', imageTag);
+            templateContent = templateContent.replace('<!-- gitgotchi -->', imageTag);
+            fs.writeFileSync(outFile, templateContent);
+            console.log(`Updated ${outFile} from ${templateFile}`);
+        }
+        else {
+            console.log(`Template file ${templateFile} not found. Skipping template build.`);
+        }
     }
     catch (error) {
         if (error instanceof Error)
             core.setFailed(error.message);
+        else
+            core.setFailed(String(error));
     }
 }
 run();
@@ -30112,15 +30126,11 @@ const assets_1 = __nccwpck_require__(3998);
 class SvgGenerator {
     render(state) {
         const width = 800;
-        const height = 400; // Increased height for better visualization
-        const sprite = assets_1.SPRITES[state.level] || assets_1.SPRITES[1];
-        // Convert sprite to SVG rects (Scale up 16x16 to something visible)
-        const pixelSize = 10;
-        const spriteSvg = this.renderSprite(sprite, pixelSize, 50, 100);
+        const height = 400;
+        // Get the SVG content string for the current level
+        const spriteContent = assets_1.SPRITES[state.level] || assets_1.SPRITES[1];
         const moodColor = this.getMoodColor(state.mood);
         const hpPercent = (state.hp / state.maxHp) * 100;
-        // Level progress
-        // Assume XP thresholds from GameEngine: 100, 500, 2000
         let nextLevelXp = 100;
         let prevLevelXp = 0;
         if (state.level === 2) {
@@ -30134,73 +30144,146 @@ class SvgGenerator {
         else if (state.level >= 4) {
             prevLevelXp = 2000;
             nextLevelXp = 5000;
-        } // Cap
+        }
         const xpProgress = state.level >= 4 ? 100 : Math.min(100, ((state.xp - prevLevelXp) / (nextLevelXp - prevLevelXp)) * 100);
-        return `
+        return `<?xml version="1.0" encoding="UTF-8"?>
       <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <!-- Gradients -->
+          <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#1a1c29" /> 
+            <stop offset="100%" style="stop-color:#2d3748" /> 
+          </linearGradient>
+          
+          <linearGradient id="cardGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+             <stop offset="0%" style="stop-color:rgba(255, 255, 255, 0.05)" />
+             <stop offset="100%" style="stop-color:rgba(255, 255, 255, 0.02)" />
+          </linearGradient>
+
+          <linearGradient id="hpLog" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:#ff4d4d" />
+            <stop offset="100%" style="stop-color:#ff9e9e" />
+          </linearGradient>
+          
+          <linearGradient id="xpLog" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:#4d94ff" />
+            <stop offset="100%" style="stop-color:#99c2ff" />
+          </linearGradient>
+
+          <!-- Drop Shadow -->
+          <filter id="dropshadow" height="130%">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="3"/> 
+            <feOffset dx="2" dy="2" result="offsetblur"/> 
+            <feComponentTransfer>
+              <feFuncA type="linear" slope="0.5"/> 
+            </feComponentTransfer>
+            <feMerge> 
+              <feMergeNode/>
+              <feMergeNode in="SourceGraphic"/> 
+            </feMerge>
+          </filter>
+        </defs>
+
         <style>
-          .text { font-family: 'Courier New', monospace; fill: #333; }
-          .title { font-size: 24px; font-weight: bold; }
-          .stat-label { font-size: 14px; fill: #666; }
-          .stat-value { font-size: 16px; font-weight: bold; }
-          .bar-bg { fill: #eee; rx: 5; }
-          .hp-bar { fill: #ff4d4d; rx: 5; transition: width 0.5s; }
-          .xp-bar { fill: #4d94ff; rx: 5; transition: width 0.5s; }
-          .pixel { shape-rendering: crispEdges; }
-          .card-bg { fill: #ffffff; stroke: #e1e4e8; stroke-width: 1; rx: 10; }
+          .text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; fill: #e0e0e0; }
+          .title { font-size: 28px; font-weight: 700; fill: #fff; }
+          .subtitle { font-size: 16px; font-weight: 400; fill: #a0aec0; }
+          .stat-label { font-size: 14px; fill: #a0aec0; font-weight: 600; letter-spacing: 0.5px; }
+          .stat-value { font-size: 14px; font-weight: bold; fill: #fff; }
+          
+          .bar-bg { fill: rgba(255, 255, 255, 0.1); rx: 6; }
+          .hp-bar { fill: url(#hpLog); rx: 6; transition: width 1s ease-out; }
+          .xp-bar { fill: url(#xpLog); rx: 6; transition: width 1s ease-out; }
+          
+          .card-bg { fill: url(#bgGradient); rx: 16; }
+          .glass-panel { fill: url(#cardGradient); stroke: rgba(255, 255, 255, 0.1); stroke-width: 1; rx: 12; }
+          
+          /* Animations */
+          @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+            100% { transform: translateY(0px); }
+          }
+          
+          .pet-anim { 
+             animation: float 4s ease-in-out infinite; 
+             transform-origin: center;
+          }
+          
+          .icon { fill: #a0aec0; }
         </style>
         
         <!-- Background -->
         <rect x="0" y="0" width="${width}" height="${height}" class="card-bg" />
+        
+        <!-- Glass Panel Overlay -->
+        <rect x="20" y="20" width="${width - 40}" height="${height - 40}" class="glass-panel" />
 
         <!-- Pet Section -->
-        <g transform="translate(50, 50)">
-             ${spriteSvg}
+        <g transform="translate(60, 60)">
+             <g class="pet-anim">
+                ${spriteContent}
+             </g>
         </g>
 
         <!-- Stats Section -->
-        <g transform="translate(300, 50)">
-          <text x="0" y="0" class="text title">${state.petName} (Lvl ${state.level})</text>
+        <g transform="translate(360, 70)">
+          <!-- Header -->
+          <text x="0" y="10" class="text title">${state.petName} <tspan fill="#a0aec0" font-weight="300">(Lvl ${state.level})</tspan></text>
+          <text x="0" y="40" class="text subtitle">The Digital Guardian</text>
           
-          <!-- HP -->
-          <text x="0" y="40" class="text stat-label">HP ${Math.round(state.hp)}/${state.maxHp}</text>
-          <rect x="0" y="50" width="300" height="15" class="bar-bg" />
-          <rect x="0" y="50" width="${hpPercent * 3}" height="15" class="hp-bar" />
+          <line x1="0" y1="60" x2="400" y2="60" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
 
-          <!-- XP -->
-          <text x="0" y="90" class="text stat-label">XP ${state.xp} / ${nextLevelXp}</text>
-          <rect x="0" y="100" width="300" height="15" class="bar-bg" />
-          <rect x="0" y="100" width="${xpProgress * 3}" height="15" class="xp-bar" />
+          <!-- HP Bar -->
+          <g transform="translate(0, 90)">
+            <path class="icon" d="M10,0 C15,-5 20,0 10,10 C0,0 5,-5 10,0" transform="scale(1.2)" />
+            <text x="30" y="10" class="text stat-label">HEALTH</text>
+            <text x="380" y="10" text-anchor="end" class="text stat-value">${Math.round(state.hp)} / ${state.maxHp}</text>
+            
+            <rect x="0" y="20" width="380" height="12" class="bar-bg" />
+            <rect x="0" y="20" width="${(hpPercent / 100) * 380}" height="12" class="hp-bar" filter="url(#dropshadow)" />
+          </g>
+
+          <!-- XP Bar -->
+          <g transform="translate(0, 150)">
+            <path class="icon" d="M10,0 L12,7 L19,7 L14,11 L16,18 L10,14 L4,18 L6,11 L1,7 L8,7 Z" transform="translate(0,-5) scale(0.9)" />
+            <text x="30" y="10" class="text stat-label">EXPERIENCE</text>
+            <text x="380" y="10" text-anchor="end" class="text stat-value">${state.xp} / ${nextLevelXp} XP</text>
+
+            <rect x="0" y="20" width="380" height="12" class="bar-bg" />
+            <rect x="0" y="20" width="${(xpProgress / 100) * 380}" height="12" class="xp-bar" filter="url(#dropshadow)" />
+          </g>
           
-          <!-- Mood -->
-          <text x="0" y="140" class="text stat-label">Mood: ${state.mood.toUpperCase()}</text>
-          
-          <!-- Streak -->
-           <text x="0" y="170" class="text stat-label">🔥 Streak: ${state.streak} days</text>
+          <!-- Info Grid -->
+          <g transform="translate(0, 210)">
+             <!-- Mood -->
+             <g>
+                <circle cx="10" cy="10" r="15" fill="rgba(255,255,255,0.05)" />
+                <text x="10" y="15" text-anchor="middle" font-size="16">😊</text>
+                <text x="35" y="5" class="text stat-label" font-size="12">MOOD</text>
+                <text x="35" y="22" class="text stat-value" fill="${moodColor}">${state.mood.toUpperCase()}</text>
+             </g>
+             
+             <!-- Streak -->
+             <g transform="translate(140, 0)">
+                <circle cx="10" cy="10" r="15" fill="rgba(255,255,255,0.05)" />
+                <text x="10" y="15" text-anchor="middle" font-size="16">🔥</text>
+                <text x="35" y="5" class="text stat-label" font-size="12">STREAK</text>
+                <text x="35" y="22" class="text stat-value">${state.streak} DAYS</text>
+             </g>
+             
+             <!-- Status -->
+             <g transform="translate(280, 0)">
+                <circle cx="10" cy="10" r="15" fill="rgba(255,255,255,0.05)" />
+                <text x="10" y="15" text-anchor="middle" font-size="16">⭐</text>
+                <text x="35" y="5" class="text stat-label" font-size="12">STATUS</text>
+                <text x="35" y="22" class="text stat-value">ACTIVE</text>
+             </g>
+          </g>
         </g>
         
-        <!-- Footer -->
-        <text x="${width - 20}" y="${height - 20}" text-anchor="end" class="text stat-label" font-size="10">GitGotchi</text>
       </svg>
     `;
-    }
-    renderSprite(sprite, pixelSize, x, y) {
-        let rects = '';
-        sprite.forEach((row, rowIndex) => {
-            [...row].forEach((char, colIndex) => {
-                let color = '';
-                if (char === '#')
-                    color = '#333';
-                else if (char === 'o')
-                    color = '#4d94ff'; // Blueish body
-                else if (char === '@')
-                    color = '#ffffff'; // Eye
-                if (color) {
-                    rects += `<rect x="${colIndex * pixelSize}" y="${rowIndex * pixelSize}" width="${pixelSize}" height="${pixelSize}" fill="${color}" class="pixel" />`;
-                }
-            });
-        });
-        return rects;
     }
     getMoodColor(mood) {
         switch (mood) {
@@ -30224,101 +30307,162 @@ exports.SvgGenerator = SvgGenerator;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SPRITES = void 0;
-// . = transparent
-// # = black (outline)
-// o = white (body)
-// @ = highlight/eye
 exports.SPRITES = {
-    1: [
-        "................",
-        "......####......",
-        ".....#oooo#.....",
-        "....#oooooo#....",
-        "....#oooooo#....",
-        "....#oooooo#....",
-        "....#oooooo#....",
-        ".....#oooo#.....",
-        "......####......",
-        "................",
-        "................",
-        "................",
-        "................",
-        "................",
-        "................",
-        "................"
-    ],
-    2: [
-        "................",
-        "................",
-        "................",
-        "................",
-        "......####......",
-        ".....#oooo#.....",
-        "....#o@oo@o#....",
-        "....#oooooo#....",
-        "....#oooooo#....",
-        ".....#oooo#.....",
-        "......####......",
-        "................",
-        "................",
-        "................",
-        "................",
-        "................"
-    ],
-    3: [
-        "................",
-        ".....#####......",
-        "....#ooooo#.....",
-        "....#o@o@o#.....",
-        "....#ooooo#.....",
-        ".....#####......",
-        "....#ooooo#.....",
-        "....#ooooo#.....",
-        "....#ooooo#.....",
-        ".....#...#......",
-        "....##...##.....",
-        "................",
-        "................",
-        "................",
-        "................",
-        "................"
-    ],
-    4: [
-        "................",
-        "......##........",
-        ".....#o#........",
-        "....#oo#........",
-        "...#oooo#.......",
-        "..#oooooo#......",
-        ".#o@oooo@o#.....",
-        ".#oooooooo#.....",
-        "..#oooooo#......",
-        "...#oooo#.......",
-        "....#oo#........",
-        "....#oo#........",
-        "...#oooo#.......",
-        "..#oo##oo#......",
-        ".#oo#..#oo#.....",
-        ".###....###....."
-    ],
-    5: [
-        "................",
-        "......###.......",
-        ".....#ooo#......",
-        "....#ooooo#.....",
-        "...#o@ooo@o#....",
-        "...#ooooooo#....",
-        "...#ooooooo#....",
-        "...#ooooooo#....",
-        "...#o#o#o#o#....",
-        "...#.#.#.#.#....",
-        "................",
-        "................",
-        "................",
-        "................",
-        "................",
-        "................"
-    ]
+    1: `
+    <!-- Egg -->
+    <defs>
+      <radialGradient id="eggGrad" cx="30%" cy="30%" r="70%">
+        <stop offset="0%" style="stop-color:#fce4ec" />
+        <stop offset="100%" style="stop-color:#f06292" />
+      </radialGradient>
+      <filter id="glow">
+        <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+        <feMerge>
+          <feMergeNode in="coloredBlur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+    </defs>
+    <g transform="translate(100, 100) scale(3)">
+      <ellipse cx="0" cy="0" rx="25" ry="32" fill="url(#eggGrad)" stroke="#880e4f" stroke-width="1.5"/>
+      <path d="M-15,-10 Q-5,0 -15,10" fill="none" stroke="#f8bbd0" stroke-width="2" opacity="0.6"/>
+      <circle cx="10" cy="-15" r="3" fill="white" opacity="0.4"/>
+    </g>
+  `,
+    2: `
+    <!-- Baby Dragon -->
+    <defs>
+      <linearGradient id="babyBody" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#b388ff" /> <!-- Light Purple -->
+        <stop offset="100%" style="stop-color:#651fff" /> <!-- Deep Purple -->
+      </linearGradient>
+    </defs>
+    <g transform="translate(100, 100) scale(2.2)">
+      <!-- Tail -->
+      <path d="M-20,20 Q-40,30 -30,10" fill="none" stroke="#651fff" stroke-width="4" stroke-linecap="round"/>
+      
+      <!-- Body -->
+      <circle cx="0" cy="10" r="20" fill="url(#babyBody)" stroke="#311b92" stroke-width="1.5"/>
+      
+      <!-- Head -->
+      <circle cx="0" cy="-15" r="18" fill="url(#babyBody)" stroke="#311b92" stroke-width="1.5"/>
+      
+      <!-- Eyes -->
+      <circle cx="-6" cy="-15" r="4" fill="white"/>
+      <circle cx="-6" cy="-15" r="1.5" fill="black"/>
+      <circle cx="6" cy="-15" r="4" fill="white"/>
+      <circle cx="6" cy="-15" r="1.5" fill="black"/>
+      
+      <!-- Little Wings -->
+      <path d="M20,10 Q35,-5 20,-10" fill="#b388ff" stroke="#311b92" stroke-width="1"/>
+      <path d="M-20,10 Q-35,-5 -20,-10" fill="#b388ff" stroke="#311b92" stroke-width="1"/>
+      
+      <!-- Horns -->
+      <path d="M-5,-30 L-8,-40 L-2,-32 Z" fill="#ede7f6" stroke="#311b92" stroke-width="1"/>
+      <path d="M5,-30 L8,-40 L2,-32 Z" fill="#ede7f6" stroke="#311b92" stroke-width="1"/>
+    </g>
+  `,
+    3: `
+    <!-- Teen Dragon -->
+    <defs>
+      <linearGradient id="teenBody" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" style="stop-color:#64ffda" /> <!-- Teal -->
+        <stop offset="100%" style="stop-color:#00bfa5" /> <!-- Darker Teal -->
+      </linearGradient>
+    </defs>
+    <g transform="translate(100, 100) scale(1.8)">
+      <!-- Body -->
+      <path d="M-15,30 Q0,50 15,30 L10,-10 L-10,-10 Z" fill="url(#teenBody)" stroke="#004d40" stroke-width="1.5"/>
+      
+      <!-- Neck -->
+      <path d="M-5,-10 Q0,-30 5,-10" fill="url(#teenBody)" stroke="#004d40" stroke-width="1.5"/>
+      
+      <!-- Head -->
+      <path d="M-12,-35 Q0,-55 12,-35 Q15,-15 0,-10 Q-15,-15 -12,-35 Z" fill="url(#teenBody)" stroke="#004d40" stroke-width="1.5"/>
+      
+      <!-- Eyes (Bored look) -->
+      <path d="M-8,-30 L-2,-30" stroke="black" stroke-width="2"/>
+      <path d="M2,-30 L8,-30" stroke="black" stroke-width="2"/>
+      
+      <!-- Wings -->
+      <path d="M10,0 Q40,-20 50,10 L30,20 Z" fill="#a7ffeb" stroke="#004d40" stroke-width="1.5"/>
+      <path d="M-10,0 Q-40,-20 -50,10 L-30,20 Z" fill="#a7ffeb" stroke="#004d40" stroke-width="1.5"/>
+      
+      <!-- Spikes -->
+      <path d="M0,-55 L-3,-65 L3,-65 Z" fill="#004d40"/>
+      <path d="M0,50 L-3,65 L3,60 Z" fill="#004d40"/>
+    </g>
+  `,
+    4: `
+    <!-- Adult Dragon -->
+    <defs>
+      <linearGradient id="adultBody" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#ff5252" /> <!-- Red -->
+        <stop offset="100%" style="stop-color:#b71c1c" /> <!-- Dark Red -->
+      </linearGradient>
+      <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+        <feOffset dx="2" dy="2" result="offsetblur"/>
+        <feComponentTransfer>
+          <feFuncA type="linear" slope="0.3"/>
+        </feComponentTransfer>
+        <feMerge>
+          <feMergeNode/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+    </defs>
+    <g transform="translate(100, 100) scale(1.5)" filter="url(#shadow)">
+      <!-- Tail -->
+      <path d="M-20,40 Q-60,60 -40,10" fill="none" stroke="#b71c1c" stroke-width="6" stroke-linecap="round"/>
+      
+      <!-- Wings (Majestic) -->
+      <path d="M15,0 Q60,-40 90,0 Q70,40 20,20 Z" fill="#ff8a80" stroke="#b71c1c" stroke-width="2"/>
+      <path d="M-15,0 Q-60,-40 -90,0 Q-70,40 -20,20 Z" fill="#ff8a80" stroke="#b71c1c" stroke-width="2"/>
+      
+      <!-- Body -->
+      <path d="M-20,40 Q0,60 20,40 L15,-10 L-15,-10 Z" fill="url(#adultBody)" stroke="#b71c1c" stroke-width="2"/>
+      
+      <!-- Head -->
+      <path d="M-15,-10 Q-20,-50 0,-60 Q20,-50 15,-10 Z" fill="url(#adultBody)" stroke="#b71c1c" stroke-width="2"/>
+      
+      <!-- Eyes (Fierce) -->
+      <path d="M-10,-35 L-2,-30 L-10,-28 Z" fill="#ffeb3b"/>
+      <path d="M10,-35 L2,-30 L10,-28 Z" fill="#ffeb3b"/>
+      
+      <!-- Horns -->
+      <path d="M-10,-55 L-20,-80 L-5,-60 Z" fill="#212121"/>
+      <path d="M10,-55 L20,-80 L5,-60 Z" fill="#212121"/>
+      
+      <!-- Belly Scales -->
+      <path d="M-10,10 L10,10" stroke="#ffcdd2" stroke-width="2" opacity="0.5"/>
+      <path d="M-12,20 L12,20" stroke="#ffcdd2" stroke-width="2" opacity="0.5"/>
+      <path d="M-14,30 L14,30" stroke="#ffcdd2" stroke-width="2" opacity="0.5"/>
+    </g>
+  `,
+    5: `
+    <!-- Ghost -->
+    <defs>
+      <radialGradient id="ghostGrad" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" style="stop-color:#ffffff" />
+        <stop offset="100%" style="stop-color:#cfd8dc" />
+      </radialGradient>
+    </defs>
+    <g transform="translate(100, 100) scale(2.0)" opacity="0.7">
+      <!-- Body -->
+      <path d="M-25,30 Q-25,-40 0,-40 Q25,-40 25,30 Q15,10 0,30 Q-15,10 -25,30" fill="url(#ghostGrad)" stroke="#90a4ae" stroke-width="1.5"/>
+      
+      <!-- Eyes -->
+      <circle cx="-8" cy="-10" r="3" fill="#37474f"/>
+      <circle cx="8" cy="-10" r="3" fill="#37474f"/>
+      
+      <!-- Mouth -->
+      <circle cx="0" cy="5" r="4" fill="none" stroke="#37474f" stroke-width="1.5"/>
+      
+      <!-- Halo -->
+      <ellipse cx="0" cy="-55" rx="15" ry="3" fill="none" stroke="#ffd700" stroke-width="2"/>
+    </g>
+  `
 };
 
 
@@ -30473,14 +30617,13 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.StateService = void 0;
 const core = __importStar(__nccwpck_require__(7484));
-const exec = __importStar(__nccwpck_require__(5236));
 const fs = __importStar(__nccwpck_require__(9896));
 const STATE_FILE = 'gitgotchi.json';
-const BRANCH = 'gitgotchi-data';
+const path = __importStar(__nccwpck_require__(6928));
 class StateService {
-    async loadState(defaultPetName) {
+    async loadState(petName, assetsDir) {
         const initialState = {
-            petName: defaultPetName,
+            petName: petName,
             hp: 100,
             maxHp: 100,
             xp: 0,
@@ -30490,14 +30633,15 @@ class StateService {
             lastFed: new Date().toISOString(),
             streak: 0
         };
+        const statePath = path.join(assetsDir, STATE_FILE);
         try {
-            // Check if branch exists
-            await exec.exec('git', ['fetch', 'origin', BRANCH], { ignoreReturnCode: true });
-            // Try to checkout the file from the orphan branch
-            await exec.exec('git', ['checkout', `origin/${BRANCH}`, '--', STATE_FILE]);
-            if (fs.existsSync(STATE_FILE)) {
-                const content = fs.readFileSync(STATE_FILE, 'utf8');
+            if (fs.existsSync(statePath)) {
+                console.log(`Loading state from ${statePath}`);
+                const content = fs.readFileSync(statePath, 'utf8');
                 return JSON.parse(content);
+            }
+            else {
+                console.log(`State file ${statePath} not found. Starting fresh.`);
             }
         }
         catch (error) {
@@ -30505,49 +30649,17 @@ class StateService {
         }
         return initialState;
     }
-    async saveState(state, svgContent) {
-        const jsonContent = JSON.stringify(state, null, 2);
-        fs.writeFileSync(STATE_FILE, jsonContent);
-        fs.writeFileSync('gitgotchi.svg', svgContent);
+    async saveState(state, svgContent, assetsDir) {
         try {
-            // Setup git config (needed if running in action)
-            await exec.exec('git', ['config', 'user.name', 'GitGotchi Action']);
-            await exec.exec('git', ['config', 'user.email', 'action@gitgotchi.com']);
-            // Check if branch exists
-            let branchExists = false;
-            try {
-                await exec.exec('git', ['rev-parse', '--verify', `origin/${BRANCH}`]);
-                branchExists = true;
+            if (!fs.existsSync(assetsDir)) {
+                fs.mkdirSync(assetsDir, { recursive: true });
             }
-            catch {
-                branchExists = false;
-            }
-            if (branchExists) {
-                await exec.exec('git', ['checkout', `origin/${BRANCH}`]);
-                await exec.exec('git', ['checkout', 'main', '--', STATE_FILE]); // bring the json over
-                await exec.exec('git', ['checkout', 'main', '--', 'gitgotchi.svg']); // bring the svg over
-            }
-            else {
-                await exec.exec('git', ['checkout', '--orphan', BRANCH]);
-                await exec.exec('git', ['rm', '-rf', '.']);
-                // Re-write files because rm -rf . deleted them from working tree (but they are in 'main' working tree? wait.
-                // When we switch to orphan, index is empty. Files in working dir might remain or be staged?
-                // Safest to write them AFTER checkout if possible, OR re-write them.
-                // We are running this script. The files are on disk.
-                // If we 'checkout --orphan', the files in working dir are preserved and staged?
-                // No, 'checkout --orphan' keeps the working tree.
-                // 'rm -rf .' clears it.
-                // So we MUST re-write or stash.
-                // Re-writing is easier.
-                fs.writeFileSync(STATE_FILE, jsonContent);
-                fs.writeFileSync('gitgotchi.svg', svgContent);
-            }
-            await exec.exec('git', ['add', STATE_FILE, 'gitgotchi.svg']);
-            await exec.exec('git', ['commit', '-m', 'Update GitGotchi State & Image']);
-            await exec.exec('git', ['push', 'origin', BRANCH]);
-            // Return to previous branch (usually main or PR branch)
-            // In GHA, we are usually in detached HEAD, so we might just stay here or checkout sha
-            // But for safety, we assume the action ends here or doesn't need to restore context immediately
+            const statePath = path.join(assetsDir, STATE_FILE);
+            const svgPath = path.join(assetsDir, 'gitgotchi.svg');
+            const jsonContent = JSON.stringify(state, null, 2);
+            fs.writeFileSync(statePath, jsonContent);
+            fs.writeFileSync(svgPath, svgContent);
+            console.log(`Saved state to ${statePath} and image to ${svgPath}`);
         }
         catch (error) {
             core.error(`Failed to save state: ${error}`);

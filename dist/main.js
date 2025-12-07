@@ -42,14 +42,14 @@ const GameEngine_1 = require("./game/GameEngine");
 const SvgGenerator_1 = require("./renderer/SvgGenerator");
 async function run() {
     try {
-        const token = core.getInput('GITHUB_TOKEN');
+        const token = core.getInput('token');
         const petName = core.getInput('pet_name') || 'GitGotchi';
         const templateFile = core.getInput('template_file') || 'TEMPLATE.md';
         const outFile = core.getInput('out_file') || 'README.md';
-        const enableTemplate = core.getInput('enable_template_build') === 'true';
+        const assetsDir = core.getInput('assets_dir') || '.github/gitgotchi';
         const username = github.context.actor;
         const stateService = new StateService_1.StateService();
-        const currentState = await stateService.loadState(petName);
+        const currentState = await stateService.loadState(petName, assetsDir);
         const githubService = new GitHubService_1.GitHubService(token);
         // Fetch contributions since last fed time
         const lastFedDate = new Date(currentState.lastFed);
@@ -60,21 +60,22 @@ async function run() {
         core.info(`New State: HP=${nextState.hp}, XP=${nextState.xp}, Streak=${nextState.streak}`);
         const svgGenerator = new SvgGenerator_1.SvgGenerator();
         const svgContent = svgGenerator.render(nextState);
-        await stateService.saveState(nextState, svgContent);
-        if (enableTemplate) {
-            if (fs.existsSync(templateFile)) {
-                console.log(`Processing template ${templateFile}...`);
-                let templateContent = fs.readFileSync(templateFile, 'utf8');
-                const imageTag = `![GitGotchi](./gitgotchi.svg)`;
-                // Replace placeholder
-                templateContent = templateContent.replace('{{ gitgotchi }}', imageTag);
-                templateContent = templateContent.replace('<!-- gitgotchi -->', imageTag);
-                fs.writeFileSync(outFile, templateContent);
-                console.log(`Updated ${outFile} from ${templateFile}`);
-            }
-            else {
-                console.log(`Template file ${templateFile} not found. Skipping template build.`);
-            }
+        await stateService.saveState(nextState, svgContent, assetsDir);
+        if (fs.existsSync(templateFile)) {
+            console.log(`Processing template ${templateFile}...`);
+            let templateContent = fs.readFileSync(templateFile, 'utf8');
+            // Construct relative path for the image link. 
+            // Assuming outFile is in root and assetsDir is relative to root.
+            const imagePath = `${assetsDir}/gitgotchi.svg`;
+            const imageTag = `![GitGotchi](${imagePath})`;
+            // Replace placeholder
+            templateContent = templateContent.replace('{{ gitgotchi }}', imageTag);
+            templateContent = templateContent.replace('<!-- gitgotchi -->', imageTag);
+            fs.writeFileSync(outFile, templateContent);
+            console.log(`Updated ${outFile} from ${templateFile}`);
+        }
+        else {
+            console.log(`Template file ${templateFile} not found. Skipping template build.`);
         }
     }
     catch (error) {

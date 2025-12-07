@@ -1,32 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.SvgGenerator = void 0;
-const assets_1 = require("./assets");
-class SvgGenerator {
-    render(state) {
-        const width = 800;
-        const height = 400;
-        // Get the SVG content string for the current level
-        const spriteContent = assets_1.SPRITES[state.level] || assets_1.SPRITES[1];
-        const moodColor = this.getMoodColor(state.mood);
-        const hpPercent = (state.hp / state.maxHp) * 100;
-        let nextLevelXp = 100;
-        let prevLevelXp = 0;
-        if (state.level === 2) {
-            prevLevelXp = 100;
-            nextLevelXp = 500;
-        }
-        else if (state.level === 3) {
-            prevLevelXp = 500;
-            nextLevelXp = 2000;
-        }
-        else if (state.level >= 4) {
-            prevLevelXp = 2000;
-            nextLevelXp = 5000;
-        }
-        const xpProgress = state.level >= 4 ? 100 : Math.min(100, ((state.xp - prevLevelXp) / (nextLevelXp - prevLevelXp)) * 100);
-        return `<?xml version="1.0" encoding="UTF-8"?>
-      <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+<?xml version="1.0" encoding="UTF-8"?>
+      <svg width="800" height="400" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <!-- Gradients -->
           <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -93,22 +66,42 @@ class SvgGenerator {
         </style>
         
         <!-- Background -->
-        <rect x="0" y="0" width="${width}" height="${height}" class="card-bg" />
+        <rect x="0" y="0" width="800" height="400" class="card-bg" />
         
         <!-- Glass Panel Overlay -->
-        <rect x="20" y="20" width="${width - 40}" height="${height - 40}" class="glass-panel" />
+        <rect x="20" y="20" width="760" height="360" class="glass-panel" />
 
         <!-- Pet Section -->
         <g transform="translate(60, 60)">
              <g class="pet-anim">
-                ${spriteContent}
+                
+    <!-- Egg -->
+    <defs>
+      <radialGradient id="eggGrad" cx="30%" cy="30%" r="70%">
+        <stop offset="0%" style="stop-color:#fce4ec" />
+        <stop offset="100%" style="stop-color:#f06292" />
+      </radialGradient>
+      <filter id="glow">
+        <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+        <feMerge>
+          <feMergeNode in="coloredBlur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+    </defs>
+    <g transform="translate(100, 100) scale(3)">
+      <ellipse cx="0" cy="0" rx="25" ry="32" fill="url(#eggGrad)" stroke="#880e4f" stroke-width="1.5"/>
+      <path d="M-15,-10 Q-5,0 -15,10" fill="none" stroke="#f8bbd0" stroke-width="2" opacity="0.6"/>
+      <circle cx="10" cy="-15" r="3" fill="white" opacity="0.4"/>
+    </g>
+  
              </g>
         </g>
 
         <!-- Stats Section -->
         <g transform="translate(360, 70)">
           <!-- Header -->
-          <text x="0" y="10" class="text title">${state.petName} <tspan fill="#a0aec0" font-weight="300">(Lvl ${state.level})</tspan></text>
+          <text x="0" y="10" class="text title">Demo Dragon <tspan fill="#a0aec0" font-weight="300">(Lvl 1)</tspan></text>
           <text x="0" y="40" class="text subtitle">The Digital Guardian</text>
           
           <line x1="0" y1="60" x2="400" y2="60" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
@@ -117,20 +110,20 @@ class SvgGenerator {
           <g transform="translate(0, 90)">
             <path class="icon" d="M10,0 C15,-5 20,0 10,10 C0,0 5,-5 10,0" transform="scale(1.2)" />
             <text x="30" y="10" class="text stat-label">HEALTH</text>
-            <text x="380" y="10" text-anchor="end" class="text stat-value">${Math.round(state.hp)} / ${state.maxHp}</text>
+            <text x="380" y="10" text-anchor="end" class="text stat-value">100 / 100</text>
             
             <rect x="0" y="20" width="380" height="12" class="bar-bg" />
-            <rect x="0" y="20" width="${(hpPercent / 100) * 380}" height="12" class="hp-bar" filter="url(#dropshadow)" />
+            <rect x="0" y="20" width="380" height="12" class="hp-bar" filter="url(#dropshadow)" />
           </g>
 
           <!-- XP Bar -->
           <g transform="translate(0, 150)">
             <path class="icon" d="M10,0 L12,7 L19,7 L14,11 L16,18 L10,14 L4,18 L6,11 L1,7 L8,7 Z" transform="translate(0,-5) scale(0.9)" />
             <text x="30" y="10" class="text stat-label">EXPERIENCE</text>
-            <text x="380" y="10" text-anchor="end" class="text stat-value">${state.xp} / ${nextLevelXp} XP</text>
+            <text x="380" y="10" text-anchor="end" class="text stat-value">0 / 100 XP</text>
 
             <rect x="0" y="20" width="380" height="12" class="bar-bg" />
-            <rect x="0" y="20" width="${(xpProgress / 100) * 380}" height="12" class="xp-bar" filter="url(#dropshadow)" />
+            <rect x="0" y="20" width="0" height="12" class="xp-bar" filter="url(#dropshadow)" />
           </g>
           
           <!-- Info Grid -->
@@ -140,7 +133,7 @@ class SvgGenerator {
                 <circle cx="10" cy="10" r="15" fill="rgba(255,255,255,0.05)" />
                 <text x="10" y="15" text-anchor="middle" font-size="16">😊</text>
                 <text x="35" y="5" class="text stat-label" font-size="12">MOOD</text>
-                <text x="35" y="22" class="text stat-value" fill="${moodColor}">${state.mood.toUpperCase()}</text>
+                <text x="35" y="22" class="text stat-value" fill="#4caf50">EXCITED</text>
              </g>
              
              <!-- Streak -->
@@ -148,7 +141,7 @@ class SvgGenerator {
                 <circle cx="10" cy="10" r="15" fill="rgba(255,255,255,0.05)" />
                 <text x="10" y="15" text-anchor="middle" font-size="16">🔥</text>
                 <text x="35" y="5" class="text stat-label" font-size="12">STREAK</text>
-                <text x="35" y="22" class="text stat-value">${state.streak} DAYS</text>
+                <text x="35" y="22" class="text stat-value">1 DAYS</text>
              </g>
              
              <!-- Status -->
@@ -162,16 +155,4 @@ class SvgGenerator {
         </g>
         
       </svg>
-    `;
-    }
-    getMoodColor(mood) {
-        switch (mood) {
-            case 'excited': return '#4caf50';
-            case 'happy': return '#8bc34a';
-            case 'neutral': return '#ffc107';
-            case 'sad': return '#ff9800';
-            default: return '#9e9e9e';
-        }
-    }
-}
-exports.SvgGenerator = SvgGenerator;
+    
