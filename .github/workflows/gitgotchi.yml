@@ -38,8 +38,8 @@ jobs:
       - name: Commit and Push
         run: |
           if [[ "$(git status --porcelain)" != "" ]]; then
-            git config user.name github-actions[bot]
-            git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+            git config user.name night-slayer18
+            git config user.email samanuaia257@gmail.com
             git add README.md .github/gitgotchi
             git commit -m "Update GitGotchi Stats"
             git push
