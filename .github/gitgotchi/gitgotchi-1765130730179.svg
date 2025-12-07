@@ -132,10 +132,10 @@
           <g transform="translate(0, 150)">
             <path class="icon" d="M10,0 L12,7 L19,7 L14,11 L16,18 L10,14 L4,18 L6,11 L1,7 L8,7 Z" transform="translate(0,-5) scale(0.9)" />
             <text x="30" y="10" class="text stat-label">EXPERIENCE</text>
-            <text x="380" y="10" text-anchor="end" class="text stat-value">150 / 500 XP</text>
+            <text x="380" y="10" text-anchor="end" class="text stat-value">225 / 500 XP</text>
 
             <rect x="0" y="20" width="380" height="12" class="bar-bg" />
-            <rect x="0" y="20" width="47.5" height="12" class="xp-bar" filter="url(#dropshadow)" />
+            <rect x="0" y="20" width="118.75" height="12" class="xp-bar" filter="url(#dropshadow)" />
           </g>
           
           <!-- Info Grid -->
