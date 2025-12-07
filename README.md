@@ -2,7 +2,7 @@
 
 **GitGotchi** is a GitHub Action that maintains a virtual pet in your profile README. This pet's life depends on your coding activity! It is a gamification layer for open-source contributions, designed to motivate developers to commit code daily.
 
-![GitGotchi Example](.github/gitgotchi/gitgotchi-1765130730179.svg)
+![GitGotchi Example](gitgotchi.svg)
 
 ## 🎮 How it Works
 

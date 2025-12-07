@@ -16,5 +16,4 @@ yarn-error.log*
 
 # GitGotchi Local Artifacts (Root Only)
 /gitgotchi.json
-/gitgotchi.svg
 /gitgotchi-lvl*.svg
