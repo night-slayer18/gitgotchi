@@ -29,20 +29,8 @@ export class GameEngine {
       const hpGain = contributions.commits * 20;
       next.hp = Math.min(next.maxHp, next.hp + hpGain);
 
-      // Streak Logic
-      const isNewDay = now.toDateString() !== lastFed.toDateString();
-      if (isNewDay) {
-        if (hoursElapsed < 48) {
-             // Contributed yesterday (or within 48h window keeping streak alive)
-             next.streak += 1;
-        } else {
-            // Gap > 48h (missed a day), reset
-             next.streak = 1;
-        }
-      } else {
-        // Same day, if streak was 0 (fresh start), set to 1
-        if (next.streak === 0) next.streak = 1; 
-      }
+      // Streak Logic: Sync with Real GitHub Streak
+      next.streak = contributions.streak;
 
       // XP Gain: +50 XP per PR merge
       // STRICT SCORING: Commits give HP, PRs give XP.
