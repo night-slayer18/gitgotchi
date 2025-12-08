@@ -35,6 +35,8 @@ jobs:
           token: ${{ secrets.USER_TOKEN }}
           pet_name: 'Demo Dragon'
           out_file: 'OUTPUT.md'
+          theme: 'ocean'
+          pet_type: 'cat'
 
       - name: Commit and Push
         run: |

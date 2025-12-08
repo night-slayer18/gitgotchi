@@ -5,16 +5,14 @@ export class GameEngine {
   calculateNextState(current: GameState, contributions: ContributionStats): GameState {
     const now = new Date();
     
-    const lastFedStr = current.lastFed.includes('T') ? current.lastFed : current.lastFed.replace(' ', 'T') + 'Z';
+    // Parse the readable timestamp as UTC
+    const lastFedStr = current.lastFed.replace(' ', 'T') + 'Z';
     const lastFed = new Date(lastFedStr);
     
     const next = { ...current };
 
     next.lastFed = now.toISOString().replace('T', ' ').split('.')[0];
-    // if ((next as any).lastFedText) delete (next as any).lastFedText; // This line was removed
-
-    // Initialize moodScore if missing (for backward compatibility or new field)
-    if (next.moodScore === undefined) next.moodScore = 5;
+    
 
     // 1. Decay (Based on time passed)
     const hoursElapsed = (now.getTime() - lastFed.getTime()) / (1000 * 60 * 60);

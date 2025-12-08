@@ -15,7 +15,7 @@ describe('GameEngine', () => {
       mood: 'excited',
       moodScore: 5,
       level: 1,
-      lastFed: new Date().toISOString(),
+      lastFed: new Date().toISOString().replace('T', ' ').split('.')[0],
       streak: 0
     };
   });
@@ -26,7 +26,7 @@ describe('GameEngine', () => {
     twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
     // lastFed is 48h ago. 
     // Logic: (now - lastFed) / 24h = 2 cycles.
-    baseState.lastFed = twoDaysAgo.toISOString();
+    baseState.lastFed = twoDaysAgo.toISOString().replace('T', ' ').split('.')[0];
 
     const next = engine.calculateNextState(baseState, { commits: 0, prsMerged: 0, issuesClosed: 0, streak: 0 });
 
@@ -83,7 +83,7 @@ describe('GameEngine', () => {
     // Simulate 2 days passed -> -20 HP -> -10 HP (capped at 0)
     const twoDaysAgo = new Date();
     twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
-    baseState.lastFed = twoDaysAgo.toISOString();
+    baseState.lastFed = twoDaysAgo.toISOString().replace('T', ' ').split('.')[0];
 
     const next = engine.calculateNextState(baseState, { commits: 0, prsMerged: 0, issuesClosed: 0, streak: 0 });
     expect(next.hp).toBe(0);

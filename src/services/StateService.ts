@@ -27,7 +27,7 @@ export class StateService {
       mood: 'happy',
       moodScore: 5,
       level: 1,
-      lastFed: new Date().toISOString(),
+      lastFed: new Date().toISOString().replace('T', ' ').split('.')[0],
       streak: 0
     };
 
