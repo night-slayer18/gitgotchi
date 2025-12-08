@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+      <svg width="600" height="300" viewBox="0 0 600 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <!-- Premium Gradients -->
+          <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#000000" /> 
+            <stop offset="100%" stop-color="#0f9b0f" /> 
+          </linearGradient>
+
+          <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#18ffff" stop-opacity="0.3" />
+            <stop offset="100%" stop-color="#18ffff" stop-opacity="0" />
+          </radialGradient>
+          
+          <linearGradient id="cardGradient" x1="0" y1="0" x2="600" y2="300" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="white" stop-opacity="0.1"/>
+            <stop offset="1" stop-color="white" stop-opacity="0.02"/>
+          </linearGradient>
+
+          <linearGradient id="hpLog" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#ff6b6b" />
+            <stop offset="100%" stop-color="#ff8e8e" />
+          </linearGradient>
+          
+          <linearGradient id="xpLog" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#00bcd4" />
+            <stop offset="100%" stop-color="#80deea" />
+          </linearGradient>
+
+          <!-- Glassmorphism Blur & Shadow -->
+          <filter id="glass" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="5"/>
+          </filter>
+
+          <filter id="dropshadow">
+            <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="black" flood-opacity="0.3"/>
+          </filter>
+        </defs>
+
+        <style>
+          .text-base { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+          .title { font-size: 24px; font-weight: 800; fill: #e0f2f1; letter-spacing: 0.5px; }
+          .subtitle { font-size: 14px; font-weight: 500; fill: #80deea; opacity: 0.8; }
+          .label { font-size: 11px; font-weight: 700; fill: #4dd0e1; letter-spacing: 1px; text-transform: uppercase; }
+          .value { font-size: 12px; font-weight: 700; fill: #e0f7fa; }
+          
+          /* Animations */
+          @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-6px); }
+          }
+          @keyframes pulse {
+            0%, 100% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+          }
+          @keyframes shimmer {
+             0% { opacity: 0.5; }
+             50% { opacity: 1; }
+             100% { opacity: 0.5; }
+          }
+
+          .pet-anim { animation: float 6s ease-in-out infinite; transform-origin: center; }
+          .glow-anim { animation: pulse 4s ease-in-out infinite; transform-origin: center; }
+          .bar-anim { transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
+          
+          .glass-card {
+            fill: url(#cardGradient);
+            stroke: rgba(24, 255, 255, 0.3);
+            stroke-width: 1px;
+            rx: 16px;
+          }
+        </style>
+        
+        <!-- Main Card Container -->
+        <rect x="0" y="0" width="600" height="300" rx="16" fill="url(#bgGradient)" />
+        
+        <!-- Ambient Glow Background -->
+        <circle cx="120" cy="150" r="120" fill="url(#glow)" class="glow-anim" />
+        
+        <!-- Glass Overlay -->
+        <rect x="1" y="1" width="598" height="298" class="glass-card" />
+
+        <!-- LEFT SIDE: Content -->
+        <g transform="translate(30, 30)">
+           <!-- Title Block -->
+           <text x="0" y="24" class="text-base title">Demo Dragon</text>
+           <text x="0" y="46" class="text-base subtitle">Lvl 3 • Cat</text>
+           
+           <!-- Info Badges (Mood & Streak) -->
+           <g transform="translate(0, 70)">
+             <!-- Mood Badge -->
+             <rect x="0" y="0" width="120" height="32" rx="16" fill="rgba(0,0,0,0.2)" stroke="rgba(24, 255, 255, 0.3)" stroke-width="1"/>
+             <text x="60" y="21" text-anchor="middle" class="text-base value" fill="#e0f7fa">
+               🤩 EXCITED
+             </text>
+             
+             <!-- Streak Badge -->
+             <g transform="translate(130, 0)">
+                <rect x="0" y="0" width="150" height="32" rx="16" fill="rgba(0,0,0,0.2)" stroke="rgba(24, 255, 255, 0.3)" stroke-width="1"/>
+                <text x="75" y="21" text-anchor="middle" class="text-base value" fill="#e0f7fa">
+                   🔥 13 DAY STREAK
+                </text>
+             </g>
+           </g>
+
+           <!-- Stats Bars -->
+           <g transform="translate(0, 130)">
+             <!-- HP -->
+             <g>
+               <text x="0" y="0" class="text-base label">Health 100%</text>
+               <rect x="0" y="10" width="220" height="8" rx="4" fill="rgba(255,255,255,0.1)" />
+               <rect x="0" y="10" width="220" height="8" rx="4" fill="url(#hpLog)" class="bar-anim" />
+               <!-- Shine/Glow on Bar -->
+               <rect x="0" y="10" width="220" height="8" rx="4" fill="white" opacity="0.1" />
+             </g>
+             
+             <!-- XP -->
+             <g transform="translate(0, 45)">
+               <text x="0" y="0" class="text-base label">XP 525 / 2000</text>
+               <rect x="0" y="10" width="220" height="8" rx="4" fill="rgba(255,255,255,0.1)" />
+               <rect x="0" y="10" width="3.6666666666666665" height="8" rx="4" fill="url(#xpLog)" class="bar-anim" />
+               <rect x="0" y="10" width="3.6666666666666665" height="8" rx="4" fill="white" opacity="0.1" />
+             </g>
+           </g>
+           
+           <!-- Footer -->
+           <text x="0" y="260" class="text-base subtitle" font-size="12">Last fed: 12/8/2025</text>
+        </g>
+
+        <!-- RIGHT SIDE: Pet Spotlight -->
+        <g transform="translate(350, 50)">
+           <!-- Platform -->
+           <ellipse cx="100" cy="180" rx="90" ry="20" fill="rgba(0,0,0,0.3)" filter="url(#glass)" />
+           
+           <!-- Pet Sprite -->
+           <g class="pet-anim">
+             
+      <!-- Teen Cat -->
+      <g transform="translate(100, 100) scale(1.8)">
+        <!-- Body (Stretching) -->
+        <path d="M-20,10 Q0,30 20,10 L25,-5 Q10,-15 -5,-5 Z" fill="#ffcc80" stroke="#ef6c00" stroke-width="1.5"/>
+        
+        <!-- Head -->
+        <ellipse cx="-15" cy="-10" rx="15" ry="12" fill="#ffe0b2" stroke="#ef6c00" stroke-width="1.5"/>
+        
+        <!-- Ears -->
+        <path d="M-25,-20 L-20,-10 L-28,-8 Z" fill="#ffcc80" stroke="#ef6c00" stroke-width="1"/>
+        <path d="M-5,-20 L-10,-10 L-2,-8 Z" fill="#ffcc80" stroke="#ef6c00" stroke-width="1"/>
+        
+        <!-- Tail (Upright) -->
+        <path d="M25,-5 Q35,-15 35,-25" fill="none" stroke="#ffcc80" stroke-width="4" stroke-linecap="round"/>
+        
+        <!-- Eyes (Winking) -->
+        <path d="M-20,-12 L-14,-12" stroke="#3e2723" stroke-width="1.5"/> <!-- Closed -->
+        <circle cx="-10" cy="-12" r="1.5" fill="#3e2723"/> <!-- Open -->
+      </g>
+    
+           </g>
+        </g>
+        
+      </svg>
+    
