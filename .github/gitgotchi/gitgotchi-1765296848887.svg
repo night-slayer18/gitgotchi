@@ -116,10 +116,10 @@
              
              <!-- XP -->
              <g transform="translate(0, 45)">
-               <text x="0" y="0" class="text-base label">XP 600 / 2000</text>
+               <text x="0" y="0" class="text-base label">XP 630 / 2000</text>
                <rect x="0" y="10" width="220" height="8" rx="4" fill="rgba(255,255,255,0.1)" />
-               <rect x="0" y="10" width="14.666666666666666" height="8" rx="4" fill="url(#xpLog)" class="bar-anim" />
-               <rect x="0" y="10" width="14.666666666666666" height="8" rx="4" fill="white" opacity="0.1" />
+               <rect x="0" y="10" width="19.06666666666667" height="8" rx="4" fill="url(#xpLog)" class="bar-anim" />
+               <rect x="0" y="10" width="19.06666666666667" height="8" rx="4" fill="white" opacity="0.1" />
              </g>
            </g>
            
