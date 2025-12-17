@@ -98,7 +98,7 @@
              <g transform="translate(130, 0)">
                 <rect x="0" y="0" width="150" height="32" rx="16" fill="rgba(0,0,0,0.2)" stroke="rgba(24, 255, 255, 0.3)" stroke-width="1"/>
                 <text x="75" y="21" text-anchor="middle" class="text-base value" fill="#e0f7fa">
-                   🔥 21 DAY STREAK
+                   🔥 22 DAY STREAK
                 </text>
              </g>
            </g>
@@ -116,15 +116,15 @@
              
              <!-- XP -->
              <g transform="translate(0, 45)">
-               <text x="0" y="0" class="text-base label">XP 1079 / 2000</text>
+               <text x="0" y="0" class="text-base label">XP 1116 / 2000</text>
                <rect x="0" y="10" width="220" height="8" rx="4" fill="rgba(255,255,255,0.1)" />
-               <rect x="0" y="10" width="84.92" height="8" rx="4" fill="url(#xpLog)" class="bar-anim" />
-               <rect x="0" y="10" width="84.92" height="8" rx="4" fill="white" opacity="0.1" />
+               <rect x="0" y="10" width="90.34666666666666" height="8" rx="4" fill="url(#xpLog)" class="bar-anim" />
+               <rect x="0" y="10" width="90.34666666666666" height="8" rx="4" fill="white" opacity="0.1" />
              </g>
            </g>
            
            <!-- Footer -->
-           <text x="0" y="260" class="text-base subtitle" font-size="12">Last fed: 12/16/2025</text>
+           <text x="0" y="260" class="text-base subtitle" font-size="12">Last fed: 12/17/2025</text>
         </g>
 
         <!-- RIGHT SIDE: Pet Spotlight -->
