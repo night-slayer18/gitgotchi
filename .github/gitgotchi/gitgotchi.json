@@ -2,10 +2,10 @@
   "petName": "Demo Dragon",
   "hp": 100,
   "maxHp": 100,
-  "xp": 3182,
+  "xp": 3212,
   "mood": "excited",
   "moodScore": 5,
   "level": 4,
-  "lastFed": "2026-01-28 02:20:45",
-  "streak": 64
+  "lastFed": "2026-01-29 02:37:10",
+  "streak": 65
 }
