@@ -2,6 +2,6 @@
 
 Welcome to my profile! Here is my GitGotchi, which grows as I code.
 
-![GitGotchi](.github/gitgotchi/gitgotchi-1793337557894.svg)
+![GitGotchi](.github/gitgotchi/gitgotchi-1793422892056.svg)
 
 Check out the [GitGotchi Action](https://github.com/nightslayer/gitgotchi) to add one to your profile!
